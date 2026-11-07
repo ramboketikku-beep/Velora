@@ -22,7 +22,14 @@ h1,h2,h3{font-family:Georgia,'Times New Roman',serif;line-height:1.15}h2{font-si
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sr{display:flex;gap:8px;margin:16px 0}
 input,select,textarea{background:#fffaf3;border:1px solid var(--line);border-radius:10px;padding:10px 12px}.sr input,.f input,.f select,.f textarea{flex:1;width:100%}::placeholder{color:var(--mut)}
 .cats,.chips,.tabs,.hs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
-.cat{flex:none;min-width:72px;max-width:96px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:7px 8px;text-align:center;font-size:11px;line-height:1.2;box-shadow:var(--sh)}.cat i{display:block;font-size:18px;font-style:normal}.cat small{display:block;color:var(--mut);font-size:10.5px}
+.cats{gap:10px;padding:4px 2px 10px;scroll-snap-type:x proximity}
+.cat{position:relative;flex:none;width:108px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:6px;background:linear-gradient(160deg,#fffdf8 0%,#f6e8d0 100%);border:1px solid var(--line);border-radius:18px;padding:14px 8px 10px;text-align:center;font-size:12px;font-weight:600;line-height:1.25;color:var(--ink);box-shadow:0 4px 14px rgba(120,84,20,.12);overflow:hidden;transition:transform .15s,box-shadow .15s,border-color .15s}
+.cat::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--btn)}
+.cat:active{transform:scale(.96)}
+@media(hover:hover){.cat:hover{transform:translateY(-3px);border-color:var(--br);box-shadow:0 8px 20px rgba(120,84,20,.2)}}
+.cat i{display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff 0%,#f7e2b8 100%);border:2px solid #e3c487;box-shadow:0 3px 8px rgba(156,106,34,.25),inset 0 -2px 4px rgba(184,134,59,.15);font-size:23px;font-style:normal}
+.cat span{display:block;min-height:30px;overflow-wrap:anywhere;hyphens:auto;display:flex;align-items:center;justify-content:center}
+.cat small{display:inline-block;background:#f0dcb6;color:#7a5418;border-radius:99px;padding:2px 9px;font-size:10.5px;font-weight:600}
 .chips button,.tabs button{flex:none;padding:6px 12px;border:1px solid var(--line);border-radius:9px;background:var(--card);font-size:13px}.chips .on,.tabs .on{background:var(--btn);color:#fff6e6;border-color:transparent}
 .hs{scroll-snap-type:x mandatory}.hs .bk{flex:0 0 138px;scroll-snap-align:start}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}@media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}}
@@ -83,7 +90,7 @@ const demoBar=()=>SB?'':'<div class="demo">Mode demo: belum tersambung ke Supaba
 R.home=()=>{const B=pub(),s=S.site,ph=/^(data:image|https?:\/\/)/.test(s.bn||''),row=a=>`<div class="hs">${a.map(card).join('')}</div>`;
 $('#app').innerHTML=`${demoBar()}<section class="hero${ph?' ph':''}"${ph?` style="background-image:linear-gradient(90deg,rgba(110,72,25,.78),rgba(110,72,25,.15)),url('${H(s.bn)}')"`:''}><span class="tg">${H(s.slogan)}</span><h1>${H(s.hl)}</h1><p>${H(s.hd)}</p><div class="row"><a class="btn g" href="#/katalog">Jelajahi Ebook</a>${B[0]?`<a class="btn o" href="#/baca/${B[0].id}">Mulai Membaca</a>`:''}</div><div class="st"><span><b>${B.length}</b> ebook gratis</span><span><b>${S.cats.length}</b> kategori</span></div></section>
 <form class="sr" onsubmit="Q.q=this.q.value;Q.cat='';nav('#/katalog');return false"><input name="q" placeholder="Cari judul atau penulis" aria-label="Cari ebook"><button class="btn">Cari</button></form>
-<h2>Kategori</h2><div class="cats">${S.cats.map(c=>`<button class="cat" onclick="Q.cat='${c.id}';Q.q='';nav('#/katalog')"><i>${c.i}</i>${H(c.n)}<small>${B.filter(b=>b.c==c.id).length} ebook</small></button>`).join('')}</div>
+<h2>Kategori</h2><div class="cats">${S.cats.map(c=>`<button class="cat" onclick="Q.cat='${c.id}';Q.q='';nav('#/katalog')"><i>${c.i}</i><span>${H(c.n)}</span><small>${B.filter(b=>b.c==c.id).length} ebook</small></button>`).join('')}</div>
 <h2>Terbaru</h2>${B.length?row(B.slice(0,8)):'<p class="box">Belum ada ebook.</p>'}
 <h2>Buku populer</h2><div class="box rk">${[...B].sort((a,b)=>(b.pop||0)-(a.pop||0)).slice(0,5).map((b,i)=>`<a href="#/buku/${b.id}"><i>${i+1}</i><div class="cv mini" style="${cvs(b)}"></div><span><b>${H(b.t)}</b><small>${H(b.a)}</small></span><small>${b.pop||0} dibaca</small></a>`).join('')||'<small>Belum ada data.</small>'}</div>
 <h2>Kabar buku baru</h2><form class="sr" onsubmit="nl(this);return false"><input name="e" type="email" required placeholder="Email kamu"><button class="btn g">Berlangganan</button></form>`};
