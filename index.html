@@ -61,6 +61,7 @@ footer{margin-top:40px;padding:28px 16px;background:#7b5522;color:#fbeed4;font-s
 <script>
 const SBURL='https://feclrbprrsljwbbkgbvl.supabase.co',SBKEY='sb_publishable_S-yFn7mqti6rdOgbTTurPw_vIXv1Z5M';
 const ADM='d176dac3ea9dfef5824c6ffdb15d99c847a0edcdc6f55cbcdcfeabb29ddf690b';
+let REC=/type=recovery/.test(location.hash+location.search);const RECERR=/error_code=|error=access_denied/.test(location.hash+location.search);
 const SB=SBURL&&window.supabase?window.supabase.createClient(SBURL,SBKEY,{global:{fetch:(u,x={})=>{const h=new Headers(x.headers);if((h.get('Authorization')||'').includes('sb_publishable'))h.delete('Authorization');return fetch(u,{...x,headers:h})}}}):null;
 const $=s=>document.querySelector(s),H=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',2800)};
@@ -84,7 +85,7 @@ const tap=()=>{const t=Date.now();taps=taps.filter(x=>t-x<3000);taps.push(t);if(
 function nav(h){CUR=h;try{history.pushState(null,'',h)}catch(e){}go()}
 addEventListener('popstate',()=>{CUR=location.hash||'#/';go()});addEventListener('hashchange',()=>{CUR=location.hash||'#/';go()});
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="#/"]');if(!a)return;e.preventDefault();if(a.classList.contains('logo')&&tap()){nav('#/admin');return}nav(a.getAttribute('href'))});
-async function go(){const p=CUR.slice(2).split('/');window.onscroll=null;document.body.classList.remove('rdm');await(R[p[0]||'home']||R.home)(p.slice(1));if(p[0]!='baca')scrollTo(0,0)}
+async function go(){if(REC&&SB){showRec();return}const p=CUR.slice(2).split('/');window.onscroll=null;document.body.classList.remove('rdm');await(R[p[0]||'home']||R.home)(p.slice(1));if(p[0]!='baca')scrollTo(0,0)}
 const demoBar=()=>SB?'':'<div class="demo">Mode demo: belum tersambung ke Supabase. Ebook di bawah hanya contoh.</div>';
 /* BERANDA */
 R.home=()=>{const B=pub(),s=S.site,ph=/^(data:image|https?:\/\/)/.test(s.bn||''),row=a=>`<div class="hs">${a.map(card).join('')}</div>`;
@@ -132,6 +133,8 @@ async function reg(){const n=$('#an').value.trim(),e=$('#ae').value.trim(),p=$('
 async function login(){const{error}=await SB.auth.signInWithPassword({email:$('#ae').value.trim(),password:$('#ap').value});if(error)return toast('Email atau kata sandi salah.');await loadUser();await loadPub();go()}
 async function out(){await SB.auth.signOut();S.user=null;S.adm=0;S.prog={};S.bm={};S.done={};persist();try{sessionStorage.vl_adm='0'}catch(e){}await loadPub();nav('#/akun')}
 async function fp(){const e=$('#ae').value.trim();if(!e)return toast('Isi email dulu.');const{error}=await SB.auth.resetPasswordForEmail(e,{redirectTo:location.href.split('#')[0]});toast(error?error.message:'Tautan reset dikirim ke emailmu.')}
+function showRec(){window.onscroll=null;$('#app').innerHTML=`<h2>Buat kata sandi baru</h2><div class="f"><input id="np" type="password" placeholder="Kata sandi baru (min. 6 karakter)" autocomplete="new-password"><input id="np2" type="password" placeholder="Ulangi kata sandi baru" autocomplete="new-password"><button class="btn" onclick="saveRec()">Simpan kata sandi</button></div>`;scrollTo(0,0)}
+async function saveRec(){const a=$('#np').value,b=$('#np2').value;if(a.length<6)return toast('Minimal 6 karakter.');if(a!=b)return toast('Kata sandi tidak sama.');const r=await SB.auth.updateUser({password:a});if(r.error)return toast(r.error.message);REC=false;toast('Kata sandi berhasil diganti.');nav('#/akun')}
 /* ADMIN (ketuk logo 5x dalam 3 detik) */
 let AA='o',EB=null;
 const parse=s=>s.split(/^# /m).filter(x=>x.trim()).map(x=>{const i=x.indexOf('\n'),t=x.slice(0,i<0?x.length:i).trim();let h=i<0?'':x.slice(i+1).trim();if(!/</.test(h))h=h.split(/\n+/).filter(Boolean).map(p=>'<p>'+H(p)+'</p>').join('');return{t,h}});
@@ -167,5 +170,5 @@ async function addC(){const n=$('#nc').value.trim();if(!n)return;const c={id:'c'
 async function renC(id){const c=S.cats.find(x=>x.id==id),n=prompt('Nama kategori',c.n);if(!n)return;const i=prompt('Ikon (emoji)',c.i);const r=await SB.from('cats').upsert({id,data:{...c,n,i:i||c.i}});if(r.error)return toast(r.error.message);admTab()}
 async function delC(id){if(S.books.some(b=>b.c==id))return toast('Pindahkan dulu ebook di kategori ini.');const r=await SB.from('cats').delete().eq('id',id);if(r.error)return toast(r.error.message);admTab()}
 /* MULAI */
-(async()=>{if(SB){try{await loadUser();await loadPub()}catch(e){toast('Tidak bisa terhubung ke Supabase.')}SB.auth.onAuthStateChange(ev=>{if(ev=='PASSWORD_RECOVERY'){const p=prompt('Kata sandi baru (min. 6 karakter)');if(p&&p.length>5)SB.auth.updateUser({password:p}).then(r=>toast(r.error?r.error.message:'Kata sandi diganti.'));nav('#/akun')}})}else{S.cats=CATS;S.books=demoBooks()}applySite();go()})();
+(async()=>{if(SB){SB.auth.onAuthStateChange(ev=>{if(ev=='PASSWORD_RECOVERY'){REC=true;showRec()}});try{await loadUser();await loadPub()}catch(e){toast('Tidak bisa terhubung ke Supabase.')}if(RECERR)toast('Tautan sudah kedaluwarsa. Minta tautan reset baru.')}else{S.cats=CATS;S.books=demoBooks()}applySite();go()})();
 </script></body></html>
